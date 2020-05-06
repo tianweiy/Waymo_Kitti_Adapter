@@ -1,3 +1,6 @@
+My customized folked of Yao Shao's Waymo_Kitti_Adapter. It will only extract 3d detection related data. 
+
+The original README is given below.
 # Waymo_Kitti_Adapter
 This is a tool converting [Waymo open dataset](https://waymo.com/open/) format to [Kitti dataset](http://www.cvlibs.net/datasets/kitti/) format.
 > Author: **Yao Shao**
