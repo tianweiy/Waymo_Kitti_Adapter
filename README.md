@@ -1,4 +1,4 @@
-My customized folked of Yao Shao's Waymo_Kitti_Adapter. It will only extract 3d detection related data. 
+My customized folk of Yao Shao's Waymo_Kitti_Adapter. It will only extract 3d detection related data. 
 
 The original README is given below.
 # Waymo_Kitti_Adapter
