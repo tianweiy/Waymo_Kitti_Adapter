@@ -399,7 +399,7 @@ if __name__ == '__main__':
     LIDAR_PATH = CONVERT_PATH + '/lidar'
 
     print("LIDAR SAVE TO ", LIDAR_PATH)
-    print("LABEL SAVE TO ", LABEL_PATH)
+    print("LABEL SAVE TO ", LABEL_ALL_PATH)
     print("CONVERT LIDAR ", args.is_lidar)
     print("CONVERT LABEL ", args.is_label)
 
