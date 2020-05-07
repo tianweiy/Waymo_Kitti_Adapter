@@ -29,7 +29,7 @@ class Adapter:
         self.get_file_names()
         self.create_folder()
 
-    def cvt(self):
+    def cvt(self, islidar=False, islabel=False):
         """ convert dataset from Waymo to KITTI
         Args:
         return:
@@ -53,11 +53,12 @@ class Adapter:
                 frame.ParseFromString(bytearray(data.numpy()))
 
                 # parse lidar
-                # self.save_lidar(frame, frame_num)
+                if islidar:
+                    self.save_lidar(frame, frame_num)
 
                 # parse label
-                annos.update({str(frame_num).zfill(INDEX_LENGTH) : self.save_label(frame)})
-                break
+                if islabel:
+                    annos.update({str(frame_num).zfill(INDEX_LENGTH) : self.save_label(frame)})
 
                 frame_num += 1
             bar.update(file_num)
@@ -65,8 +66,9 @@ class Adapter:
         bar.finish()
         print("\nfinished ...")
 
-        with open(LABEL_ALL_PATH, "w") as f:
-            json.dump(annos, f)
+        if islabel:
+            with open(LABEL_ALL_PATH, "w") as f:
+                json.dump(annos, f)
 
     def save_lidar(self, frame, frame_num):
         """ parse and save the lidar data in psd format
@@ -112,7 +114,7 @@ class Adapter:
             acc_y = obj.metadata.accel_y
             num_point_in_gt = obj.num_lidar_points_in_box
 
-            frame_pose = np.reshape(np.array(frame.pose.transform), [4, 4])
+            frame_pose = frame.pose.transform
             context_name = frame.context.name
             timestamp = frame.timestamp_micros
 
@@ -123,7 +125,7 @@ class Adapter:
                 'location': [x,y,z],
                 'velocity': [speed_x, speed_y],
                 'acceleration': [acc_x, acc_y],
-                'frame_pose': frame_pose,
+                'frame_pose': list(frame_pose),
                 'num_points_in_gt': num_point_in_gt,
                 'timestamp': timestamp,
                 'context_name': context_name
@@ -360,6 +362,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Waymo 3D Extractor")
     parser.add_argument("--data_path", type=str, default="data/Waymo/tfrecord_training")
     parser.add_argument("--convert_path", type=str, default="data/Waymo_convert")
+    parser.add_argument("--is_lidar", action='store_true')
+    parser.add_argument("--is_label", action='store_true')
 
     args = parser.parse_args()
     return args
@@ -374,5 +378,11 @@ if __name__ == '__main__':
     LABEL_ALL_PATH = CONVERT_PATH + '/target_info.json'
     LIDAR_PATH = CONVERT_PATH + '/lidar'
 
+    print("LIDAR SAVE TO ", LIDAR_PATH)
+    print("LABEL SAVE TO ", LABEL_PATH)
+    print("CONVERT LIDAR ", args.is_lidar)
+    print("CONVERT LABEL ", args.is_label)
+
+
     adapter = Adapter()
-    adapter.cvt()
+    adapter.cvt(args.is_lidar, args.is_label)
