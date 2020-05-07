@@ -146,7 +146,8 @@ class Adapter:
         annos['results'] = results
         annos['metadata'] = metadata
 
-
+        with open(os.path.join(LABEL_ALL_PATH, str(lidar_id).zfill(INDEX_LENGTH)), 'w') as f:
+            json.dump(annos, f)
 
     def get_file_names(self):
         self.__file_names = []
@@ -389,7 +390,7 @@ if __name__ == '__main__':
     DATA_PATH = args.data_path
     CONVERT_PATH = args.convert_path 
 
-    LABEL_ALL_PATH = CONVERT_PATH + '/target_info.json'
+    LABEL_ALL_PATH = CONVERT_PATH + '/label'
     LIDAR_PATH = CONVERT_PATH + '/lidar'
 
     print("LIDAR SAVE TO ", LIDAR_PATH)
