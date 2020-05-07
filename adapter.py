@@ -47,15 +47,11 @@ class Adapter:
         print("start converting ...")
         bar.start()
         for seq_id, file_name in enumerate(self.__file_names):
-            # first parse all frames in this scene
             dataset = tf.data.TFRecordDataset(file_name, compression_type='')
-            frames = [] 
-            for data in dataset:
+            for frame_id, data in enumerate(dataset):
                 frame = open_dataset.Frame()
                 frame.ParseFromString(bytearray(data.numpy()))
-                frames.append(frame)
-
-            for frame_id, frame in enumerate(frames):
+                
                 # parse lidar
                 if islidar:
                     self.save_lidar(frame, frame_num)
