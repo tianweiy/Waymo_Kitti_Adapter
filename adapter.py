@@ -43,24 +43,29 @@ class Adapter:
 
         tf.enable_eager_execution()
         file_num = 1
-        frame_num = 0
+        frame_num = 0  # frame_num serve as the unique identifier to correspond lidar point with labels
         print("start converting ...")
         bar.start()
-        for file_name in self.__file_names:
+        for seq_id, file_name in enumerate(self.__file_names):
+            # first parse all frames in this scene
             dataset = tf.data.TFRecordDataset(file_name, compression_type='')
+            frames = [] 
             for data in dataset:
                 frame = open_dataset.Frame()
                 frame.ParseFromString(bytearray(data.numpy()))
+                frames.append(frame)
 
+            for frame_id, frame in enumerate(frames):
                 # parse lidar
                 if islidar:
                     self.save_lidar(frame, frame_num)
 
                 # parse label
                 if islabel:
-                    annos.update({str(frame_num).zfill(INDEX_LENGTH) : self.save_label(frame)})
+                    annos.update({str(frame_num).zfill(INDEX_LENGTH) : self.save_label(frame, frame_id, seq_id, frame_num)})
 
                 frame_num += 1
+
             bar.update(file_num)
             file_num += 1
         bar.finish()
@@ -91,12 +96,29 @@ class Adapter:
         pc_path = LIDAR_PATH + '/' + str(frame_num).zfill(INDEX_LENGTH) + '.bin'
         point_cloud.tofile(pc_path)
 
-    def save_label(self, frame):
+    def save_label(self, frame, frame_id, seq_id, lidar_id):
         """ parse and save the label data in .txt format
                 :param frame: open dataset frame proto
+                :param frame_id: identifier for current frame in the sequence (used for tracking)
+                :param seq_id: identifier for current sequence
+                :param lidar_id: same value as frame_num, use this to identify the ldiar point cloud 
                 :return:
                 """
-        annos = []
+        results = []      
+        metadata = {}
+
+        frame_timestamp = frame.timestamp_micros
+        frame_pose = frame.pose.transform
+        context_name = frame.context.name
+
+        metadata = {
+            'frame_timestamp': frame_timestamp,
+            'context_name': context_name,
+            'frame_pose': frame_pose,
+            'frame_id': frame_id,
+            'seq_id': seq_id,
+            'lidar_id': str(lidar_id).zfill(INDEX_LENGTH)
+        }
 
         for obj in frame.laser_labels:
             my_type = self.__type_list[obj.type]
@@ -114,10 +136,6 @@ class Adapter:
             acc_y = obj.metadata.accel_y
             num_point_in_gt = obj.num_lidar_points_in_box
 
-            frame_pose = frame.pose.transform
-            context_name = frame.context.name
-            timestamp = frame.timestamp_micros
-
             target = {
                 'type': my_type,
                 'dim': [width, length, height],
@@ -127,10 +145,12 @@ class Adapter:
                 'acceleration': [acc_x, acc_y],
                 'frame_pose': list(frame_pose),
                 'num_points_in_gt': num_point_in_gt,
-                'timestamp': timestamp,
-                'context_name': context_name
             }
-            annos.append(target)
+            results.append(target)
+
+        annos = {}
+        annos['results'] = results
+        annos['metadata'] = metadata
 
         return annos 
 
