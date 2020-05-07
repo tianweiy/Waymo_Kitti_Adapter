@@ -58,8 +58,9 @@ class Adapter:
 
                 # parse label
                 if islabel:
-                    annos.update({str(frame_num).zfill(INDEX_LENGTH) : self.save_label(frame, frame_id, seq_id, frame_num)})
+                    self.save_label(frame, frame_id, seq_id, frame_num)
 
+                del frame, data
                 frame_num += 1
 
             bar.update(file_num)
@@ -67,9 +68,6 @@ class Adapter:
         bar.finish()
         print("\nfinished ...")
 
-        if islabel:
-            with open(LABEL_ALL_PATH, "w") as f:
-                json.dump(annos, f)
 
     def save_lidar(self, frame, frame_num):
         """ parse and save the lidar data in psd format
@@ -148,7 +146,7 @@ class Adapter:
         annos['results'] = results
         annos['metadata'] = metadata
 
-        return annos 
+
 
     def get_file_names(self):
         self.__file_names = []
