@@ -1,3 +1,4 @@
+import argparse
 import os
 import math
 # import time
@@ -110,12 +111,11 @@ class Adapter:
             acc_y = obj.metadata.accel_y
             num_point_in_gt = obj.num_lidar_points_in_box
 
-            rotation = frame_pose[0:3, 0:3]
-            transform = frame_pose[0:3, 3]
+            frame_pose = np.reshape(np.array(frame.pose.transform), [4, 4])
 
             target = {
                 'type': my_type,
-                'dim': [weight, length, height],
+                'dim': [width, length, height],
                 'rotation': rotation_y,
                 'location': [x,y,z],
                 'velocity': [speed_x, speed_y],
@@ -134,19 +134,8 @@ class Adapter:
                 self.__file_names.append(DATA_PATH + '/' + i)
 
     def create_folder(self):
-        if not os.path.exists(KITTI_PATH):
-            os.mkdir(KITTI_PATH)
-        if not os.path.exists(CALIB_PATH):
-            os.mkdir(CALIB_PATH)
         if not os.path.exists(LIDAR_PATH):
             os.mkdir(LIDAR_PATH)
-        if not os.path.exists(LABEL_ALL_PATH):
-            os.mkdir(LABEL_ALL_PATH)
-        for i in range(5):
-            if not os.path.exists(IMAGE_PATH + str(i)):
-                os.mkdir(IMAGE_PATH + str(i))
-            if not os.path.exists(LABEL_PATH + str(i)):
-                os.mkdir(LABEL_PATH + str(i))
 
     def extract_intensity(self, frame, range_images, lidar_num):
         """ extract the intensity from the original range image
@@ -364,8 +353,8 @@ class Adapter:
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Waymo 3D Extractor")
-    parser.add_argument("data_path", type=str, default="data/Waymo/tfrecord_training")
-    parser.add_argument("convert_path", type=str, default="data/Waymo_convert")
+    parser.add_argument("--data_path", type=str, default="data/Waymo/tfrecord_training")
+    parser.add_argument("--convert_path", type=str, default="data/Waymo_convert")
 
     args = parser.parse_args()
     return args
