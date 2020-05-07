@@ -57,6 +57,7 @@ class Adapter:
 
                 # parse label
                 annos.update({str(frame_num).zfill(INDEX_LENGTH) : self.save_label(frame)})
+                break
 
                 frame_num += 1
             bar.update(file_num)
@@ -112,6 +113,8 @@ class Adapter:
             num_point_in_gt = obj.num_lidar_points_in_box
 
             frame_pose = np.reshape(np.array(frame.pose.transform), [4, 4])
+            context_name = frame.context.name
+            timestamp = frame.timestamp_micros
 
             target = {
                 'type': my_type,
@@ -121,7 +124,9 @@ class Adapter:
                 'velocity': [speed_x, speed_y],
                 'acceleration': [acc_x, acc_y],
                 'frame_pose': frame_pose,
-                'num_points_in_gt': num_point_in_gt
+                'num_points_in_gt': num_point_in_gt,
+                'timestamp': timestamp,
+                'context_name': context_name
             }
             annos.append(target)
 
